@@ -12,6 +12,10 @@
 }
 
 @layer base {
+  * {
+    @apply transition-colors duration-500;
+  }
+
   body {
     @apply bg-dark text-stone-200 font-sans antialiased selection:bg-white/10;
   }
