@@ -1,17 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 
-const API_KEY = process.env.GEMINI_API_KEY;
-
 let ai: GoogleGenAI | null = null;
 
 function getAI() {
+  const apiKey = typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined;
   if (!ai) {
-    if (!API_KEY) {
-       // In AI Studio, the key is provided in the environment.
-       // Failure to find it usually means a config issue.
+    if (!apiKey) {
       throw new Error("GEMINI_API_KEY environment variable is required");
     }
-    ai = new GoogleGenAI({ apiKey: API_KEY });
+    ai = new GoogleGenAI({ apiKey });
   }
   return ai;
 }
@@ -85,6 +82,37 @@ export async function generateDiscoveryImage(visualPrompt: string) {
     return null;
   } catch (error) {
     console.error("Discovery Image Generation Error:", error);
+    return null;
+  }
+}
+
+export async function getMenuItemArt(itemName: string, itemDescription: string) {
+  try {
+    const client = getAI();
+    const response = await client.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          {
+            text: `Hyper-artistic, fine-dining plating of a dish called "${itemName}". Description: ${itemDescription}. Elegant composition, cinematic lighting, shallow depth of field, vibrant colors, photorealistic macro photography, stone background.`,
+          },
+        ],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "1:1"
+        }
+      }
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:image/png;base64,${part.inlineData.data}`;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Menu Item Art Generation Error:", error);
     return null;
   }
 }

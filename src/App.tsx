@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { Menu, X, LogIn, ChevronRight, Play, UtensilsCrossed, Calendar, Sparkles, User, LogOut, Search, Globe, Moon, Sun, Instagram, Twitter, MapPin, Apple, Wine } from 'lucide-react';
 import { cn } from './lib/utils';
 import { MENU_ITEMS, MenuItem } from './constants';
-import { getSensoryRecommendation, generateDiscoveryImage } from './services/geminiService';
+import { getSensoryRecommendation, generateDiscoveryImage, getMenuItemArt } from './services/geminiService';
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, orderBy, limit } from 'firebase/firestore';
@@ -61,10 +61,6 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 type View = 'landing' | 'menu' | 'reservation' | 'ai-discovery' | 'auth' | 'about' | 'events' | 'gallery' | 'contact' | 'feedback' | 'feedback-stats';
 type Language = 'en' | 'fr' | 'jp';
 type Theme = 'dark' | 'light';
-
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const TRANSLATIONS = {
   en: {
@@ -1004,28 +1000,9 @@ const MenuSection = ({ lang, theme }: { lang: Language, theme: Theme }) => {
   const handleGenerateArt = async (item: MenuItem) => {
     setGeneratingIds(prev => new Set(prev).add(item.id.toString()));
     try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: `Hyper-artistic, fine-dining plating of a dish called "${item.name}". Description: ${item.description}. Elegant composition, cinematic lighting, shallow depth of field, vibrant colors, photorealistic macro photography, stone background.`,
-            },
-          ],
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: "1:1"
-          }
-        }
-      });
-
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          const imageUrl = `data:image/png;base64,${part.inlineData.data}`;
-          setGeneratedImages(prev => ({ ...prev, [item.id]: imageUrl }));
-          break;
-        }
+      const imageUrl = await getMenuItemArt(item.name, item.description);
+      if (imageUrl) {
+        setGeneratedImages(prev => ({ ...prev, [item.id]: imageUrl }));
       }
     } catch (error) {
       console.error("Art generation failed:", error);
