@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "Feedback": {
+      "title": "Guest Feedback",
+      "description": "Post-dining feedback from guests including ratings and comments.",
+      "type": "object",
+      "properties": {
+        "guestName": { "type": "string", "description": "Name of the guest (optional)" },
+        "email": { "type": "string", "format": "email", "description": "Email of the guest (optional)" },
+        "rating": { "type": "number", "description": "Overall experience rating (1-5)" },
+        "foodRating": { "type": "number", "description": "Food quality rating (1-5)" },
+        "serviceRating": { "type": "number", "description": "Service quality rating (1-5)" },
+        "ambienceRating": { "type": "number", "description": "Ambience rating (1-5)" },
+        "comments": { "type": "string", "description": "Additional comments" },
+        "visitDate": { "type": "string", "format": "date-time", "description": "Date of the visit" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Time the feedback was submitted" }
+      },
+      "required": ["rating", "visitDate", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/feedback/{feedbackId}": {
+      "schema": "Feedback",
+      "description": "Collection of guest feedback submissions."
+    }
+  }
+}

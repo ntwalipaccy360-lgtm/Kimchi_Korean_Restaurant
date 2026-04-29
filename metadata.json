@@ -1,0 +1,6 @@
+{
+  "name": "KIMCHI",
+  "description": "An immersive, high-end restaurant platform featuring AI-powered menu curation, a sensory-driven discovery system, and a sophisticated reservation experience.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"],
+  "majorCapabilities": ["AI Menu Curation", "Sensory Discovery", "Reservations"]
+}

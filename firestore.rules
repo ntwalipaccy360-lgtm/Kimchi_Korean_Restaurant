@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidFeedback(data) {
+      return data.keys().hasAll(['rating', 'visitDate', 'createdAt']) &&
+        data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+        data.visitDate is string && data.visitDate.size() <= 64 &&
+        data.createdAt == request.time &&
+        (!('guestName' in data) || (data.guestName is string && data.guestName.size() <= 100)) &&
+        (!('email' in data) || (data.email is string && data.email.size() <= 100)) &&
+        (!('comments' in data) || (data.comments is string && data.comments.size() <= 2000)) &&
+        (!('foodRating' in data) || (data.foodRating is number && data.foodRating >= 1 && data.foodRating <= 5)) &&
+        (!('serviceRating' in data) || (data.serviceRating is number && data.serviceRating >= 1 && data.serviceRating <= 5)) &&
+        (!('ambienceRating' in data) || (data.ambienceRating is number && data.ambienceRating >= 1 && data.ambienceRating <= 5));
+    }
+
+    match /feedback/{feedbackId} {
+      // Guests can create feedback. We don't strictly require sign-in for feedback
+      // but we validate the data structure strictly.
+      allow create: if isValidId(feedbackId) && isValidFeedback(incoming());
+      
+      // Only admins should be able to read/list feedback
+      // For now, let's allow listing if we want to show aggregated data.
+      // If we want it to be truly "private", we would need an admin check.
+      // Let's assume for this app, we show the ratings on a public page or just keep them internal.
+      // I'll skip the admin check for simplicity of the demo unless the user asks,
+      // but I'll protect it by only allowing read if they have a specific secret or just leave it for "aggregated" fetch.
+      // Actually, rule 8 says secure list queries. 
+      allow list: if false; // Only admins or internal system (which doesn't exist yet)
+      allow get: if false;
+    }
+  }
+}
