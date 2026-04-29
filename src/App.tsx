@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { Menu, X, LogIn, ChevronRight, Play, UtensilsCrossed, Calendar, Sparkles, User, LogOut, Search, Globe, Moon, Sun, Instagram, Twitter, MapPin, Apple, Wine } from 'lucide-react';
 import { cn } from './lib/utils';
-import { MENU_ITEMS, MenuItem } from './constants';
+import { MENU_ITEMS, MenuItem, GALLERY_IMAGES, GALLERY_CATEGORIES } from './constants';
 import { getSensoryRecommendation, generateDiscoveryImage, getMenuItemArt } from './services/geminiService';
 
 import { initializeApp } from 'firebase/app';
@@ -325,22 +325,23 @@ const Navigation = ({
           ))}
 
           <div className="flex items-center gap-4 border-l border-white/10 pl-10 ml-4" role="group" aria-label="Language Selector">
-            {(['en', 'fr', 'jp'] as Language[]).map((l) => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                aria-pressed={lang === l}
-                aria-label={`Change language to ${l === 'en' ? 'English' : l === 'fr' ? 'French' : 'Japanese'}`}
-                className={cn(
-                  "text-[9px] font-bold transition-all uppercase",
-                  lang === l 
-                    ? (theme === 'dark' ? "text-[#f5d38a]" : "text-amber-800") 
-                    : (theme === 'dark' ? "text-white/30 hover:text-white" : "text-black/20 hover:text-black")
-                )}
-              >
-                {l}
-              </button>
-            ))}
+            <button
+              onClick={() => {
+                const langs: Language[] = ['en', 'fr', 'jp'];
+                const nextIndex = (langs.indexOf(lang) + 1) % langs.length;
+                setLang(langs[nextIndex]);
+              }}
+              className={cn(
+                "flex items-center gap-2 transition-all group/lang",
+                theme === 'dark' ? "text-white/50 hover:text-[#f5d38a]" : "text-black/40 hover:text-amber-800"
+              )}
+              aria-label={`Change language from ${lang}. Currently ${lang === 'en' ? 'English' : lang === 'fr' ? 'French' : 'Japanese'}`}
+            >
+              <Globe size={14} className="opacity-50 group-hover/lang:opacity-100 transition-opacity" />
+              <span className="text-[10px] font-bold uppercase tracking-widest min-w-[24px]">
+                {lang}
+              </span>
+            </button>
           </div>
 
           <button
@@ -357,7 +358,36 @@ const Navigation = ({
           </button>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Mobile/Tablet Toggles */}
+          <div className="flex lg:hidden items-center gap-2">
+            <button
+              onClick={() => {
+                const langs: Language[] = ['en', 'fr', 'jp'];
+                const nextIndex = (langs.indexOf(lang) + 1) % langs.length;
+                setLang(langs[nextIndex]);
+              }}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-full transition-all border",
+                theme === 'dark' ? "border-white/10 text-white/70" : "border-black/10 text-black/70"
+              )}
+              aria-label="Toggle Language"
+            >
+              <Globe size={14} />
+              <span className="text-[9px] font-bold uppercase tracking-widest">{lang}</span>
+            </button>
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                "p-2 rounded-full transition-all border",
+                theme === 'dark' ? "border-white/10 text-white/50" : "border-black/10 text-black/50"
+              )}
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          </div>
+
           <button
             onClick={() => { setView('reservation'); setMobileMenuOpen(false); }}
             aria-label={t.book}
@@ -420,21 +450,23 @@ const Navigation = ({
 
             <div className="mt-auto space-y-12">
               <div className="flex items-center justify-between border-t border-current opacity-10 pt-8">
-                <div className="flex gap-6">
-                  {(['en', 'fr', 'jp'] as Language[]).map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setLang(l)}
-                      className={cn(
-                        "text-xs font-bold uppercase tracking-widest",
-                        lang === l 
-                          ? (theme === 'dark' ? "text-[#f5d38a]" : "text-amber-800") 
-                          : (theme === 'dark' ? "text-white/30" : "text-black/30")
-                      )}
-                    >
-                      {l}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-6">
+                  <button
+                    onClick={() => {
+                      const langs: Language[] = ['en', 'fr', 'jp'];
+                      const nextIndex = (langs.indexOf(lang) + 1) % langs.length;
+                      setLang(langs[nextIndex]);
+                    }}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2 border rounded-full transition-all",
+                      theme === 'dark' ? "border-white/10 text-white" : "border-black/10 text-black"
+                    )}
+                  >
+                    <Globe size={14} className={theme === 'dark' ? "text-[#f5d38a]" : "text-amber-800"} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      {lang === 'en' ? 'English' : lang === 'fr' ? 'Français' : '日本語'}
+                    </span>
+                  </button>
                 </div>
                 <button
                   onClick={toggleTheme}
@@ -474,8 +506,8 @@ const Hero = ({ lang, theme, setView }: { lang: Language, theme: Theme, setView:
     <section className={cn("relative h-[110vh] md:h-screen flex flex-col items-center justify-center overflow-hidden transition-colors duration-700", theme === 'dark' ? "bg-black" : "bg-stone-100")}>
       <motion.div style={{ y: y1 }} className="absolute inset-0 z-0">
         <img 
-          src="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&fm=webp&fit=crop&w=1920&q=80" 
-          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-700", theme === 'dark' ? "opacity-60" : "opacity-30")}
+          src="https://images.pexels.com/photos/2092906/pexels-photo-2092906.jpeg?auto=compress&cs=tinysrgb&w=1920" 
+          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-700", theme === 'dark' ? "opacity-70" : "opacity-60")}
           alt=""
           aria-hidden="true"
           loading="eager"
@@ -489,8 +521,8 @@ const Hero = ({ lang, theme, setView }: { lang: Language, theme: Theme, setView:
           preload="auto"
           aria-hidden="true"
           className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000"
-          style={{ filter: theme === 'dark' ? 'brightness(0.7)' : 'brightness(1.1) grayscale(0.2)' }}
-          onCanPlay={(e) => (e.currentTarget.style.opacity = theme === 'dark' ? '1' : '0.4')}
+          style={{ filter: theme === 'dark' ? 'brightness(0.8)' : 'brightness(1.0) contrast(1.1)' }}
+          onCanPlay={(e) => (e.currentTarget.style.opacity = theme === 'dark' ? '0.8' : '0.4')}
         >
           <source src="https://videos.pexels.com/video-files/857195/857195-hd_1920_1080_30fps.mp4" type="video/mp4" />
         </video>
@@ -737,9 +769,9 @@ const AuthPage = ({ mode: initialMode, onAuthSuccess, lang, theme }: { mode: 'lo
       <div className="hidden lg:block w-1/2 relative">
         <div className={cn("absolute inset-0 z-10 opacity-30", theme === 'dark' ? "bg-black" : "bg-stone-100")} />
         <img 
-          src={mode === 'login' ? "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fm=webp&fit=crop&w=1200&q=80" : "https://images.unsplash.com/photo-1514361892635-6b07e31e75f9?auto=format&fm=webp&fit=crop&w=1200&q=80"}
+          src={mode === 'login' ? "https://images.pexels.com/photos/1449773/pexels-photo-1449773.jpeg?auto=compress&cs=tinysrgb&w=1200" : "https://images.pexels.com/photos/1581384/pexels-photo-1581384.jpeg?auto=compress&cs=tinysrgb&w=1200"}
           alt="Atmosphere" 
-          className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-1000"
+          className="w-full h-full object-cover grayscale-0 brightness-100 hover:brightness-110 transition-all duration-1000"
           loading="lazy"
           decoding="async"
         />
@@ -1115,7 +1147,6 @@ const MenuSection = ({ lang, theme }: { lang: Language, theme: Theme }) => {
                     "w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110",
                     generatingIds.has(item.id.toString()) ? "opacity-30 blur-2xl" : "opacity-100"
                   )}
-                  referrerPolicy="no-referrer"
                   loading="lazy"
                   decoding="async"
                 />
@@ -1663,6 +1694,7 @@ export default function App() {
   const [view, setView] = useState<View>('landing');
   const [user, setUser] = useState<any>(null);
   const [lang, setLang] = useState<Language>('en');
+  const [galleryTab, setGalleryTab] = useState('all');
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('kimchi-theme');
@@ -1685,6 +1717,7 @@ export default function App() {
   };
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  const t = TRANSLATIONS[lang];
 
   return (
     <div className={cn(
@@ -1731,6 +1764,25 @@ export default function App() {
                      "text-6xl md:text-8xl font-serif italic mb-10 leading-tight",
                      theme === 'dark' ? "text-white" : "text-neutral-900"
                    )}>A Symphony of <br/><span className="text-[#f5d38a]">Senses</span></h2>
+                   
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+                      {[
+                        "https://images.pexels.com/photos/1055058/pexels-photo-1055058.jpeg?auto=compress&cs=tinysrgb&w=800",
+                        "https://images.pexels.com/photos/2092906/pexels-photo-2092906.jpeg?auto=compress&cs=tinysrgb&w=800",
+                        "https://images.pexels.com/photos/2098085/pexels-photo-2098085.jpeg?auto=compress&cs=tinysrgb&w=800",
+                        "https://images.pexels.com/photos/1581384/pexels-photo-1581384.jpeg?auto=compress&cs=tinysrgb&w=800"
+                      ].map((url, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="aspect-[3/4] rounded-sm overflow-hidden border border-white/10"
+                        >
+                           <img src={url} className="w-full h-full object-cover grayscale-0 transition-transform duration-[2s] hover:scale-110" alt="Restaurant Dish" />
+                        </motion.div>
+                      ))}
+                   </div>
                    <p className={cn(
                      "text-lg font-light leading-relaxed max-w-2xl mx-auto mb-16",
                      theme === 'dark' ? "text-white/40" : "text-stone-500"
@@ -1745,32 +1797,6 @@ export default function App() {
                    </button>
                  </motion.div>
               </section>
-
-              {/* Enhanced Gallery Fragment */}
-               <section className={cn(
-                 "py-20 px-4 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-[1800px] mx-auto transition-colors duration-700",
-                 theme === 'dark' ? "bg-black" : "bg-white"
-               )}>
-                  {[
-                    "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fm=webp&fit=crop&w=600&q=80",
-                    "https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&fm=webp&fit=crop&w=600&q=80",
-                    "https://images.unsplash.com/photo-1514361892635-6b07e31e75f9?auto=format&fm=webp&fit=crop&w=600&q=80",
-                    "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fm=webp&fit=crop&w=600&q=80"
-                  ].map((src, i) => (
-                    <div key={i} className={cn(
-                      "aspect-[3/4] overflow-hidden group border",
-                      theme === 'dark' ? "border-white/5" : "border-black/5"
-                    )}>
-                       <img 
-                         src={src} 
-                         className="w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-1000 scale-110 group-hover:scale-100" 
-                         alt="Atmosphere" 
-                         loading="lazy"
-                         decoding="async"
-                       />
-                    </div>
-                  ))}
-               </section>
             </motion.div>
           )}
 
@@ -1837,45 +1863,55 @@ export default function App() {
                   )}>{view}</h2>
                   
                   {view === 'gallery' && (
-                    <div className="space-y-20 pb-40">
+                    <div className="space-y-12 pb-40">
                       <p className={cn(
-                        "text-xl md:text-2xl font-light leading-relaxed max-w-2xl mx-auto italic mb-20",
+                        "text-xl md:text-2xl font-light leading-relaxed max-w-2xl mx-auto italic mb-12",
                         theme === 'dark' ? "text-white/50" : "text-stone-500"
                       )}>
-                        "{(TRANSLATIONS[lang] as any)[view].content}"
+                        "{(t as any).gallery.content}"
                       </p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {[
-                          "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1514361892635-6b07e31e75f9?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1550966841-39fbd6dcda02?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1543007630-983ce91bc787?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1577214224026-cc9c78c5d540?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1560624052-449f5ddf0c31?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1551218808-94e220e031eb?auto=format&fm=webp&fit=crop&w=800&q=80",
-                          "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fm=webp&fit=crop&w=800&q=80"
-                        ].map((src, i) => (
-                          <motion.div 
-                            key={i} 
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.05 }}
+
+                      <div className="flex flex-wrap justify-center gap-6 mb-12">
+                        {GALLERY_CATEGORIES.map(cat => (
+                          <button
+                            key={cat}
+                            onClick={() => setGalleryTab(cat)}
                             className={cn(
-                              "aspect-[3/4] overflow-hidden group border",
-                              theme === 'dark' ? "border-white/5 bg-white/5" : "border-black/5 bg-black/5"
+                              "text-[10px] uppercase tracking-[0.3em] font-bold px-6 py-2 transition-all border rounded-full",
+                              galleryTab === cat
+                                ? (theme === 'dark' ? "bg-[#f5d38a] text-black border-[#f5d38a]" : "bg-amber-800 text-white border-amber-800")
+                                : (theme === 'dark' ? "text-white/40 border-white/10 hover:border-white/30" : "text-black/40 border-black/10 hover:border-black/30")
+                            )}
+                          >
+                            {(t as any).menu[cat] || cat.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {GALLERY_IMAGES.filter(img => galleryTab === 'all' || img.category === galleryTab).map((img, i) => (
+                          <motion.div 
+                            key={img.id} 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: i * 0.1 }}
+                            className={cn(
+                              "aspect-video md:aspect-[4/5] overflow-hidden group rounded-sm relative shadow-2xl transition-all duration-700 hover:shadow-amber-500/10",
+                              theme === 'dark' ? "bg-white/5" : "bg-black/5"
                             )}
                           >
                              <img 
-                               src={src} 
-                               className="w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-1000 scale-110 group-hover:scale-100" 
+                               src={img.src} 
+                               className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110" 
                                alt="Gallery Item" 
                                loading="lazy"
-                               decoding="async"
                              />
+                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span className="text-white text-[10px] uppercase tracking-[0.5em] font-light border-b border-white/30 pb-2">
+                                  {img.category}
+                                </span>
+                             </div>
                           </motion.div>
                         ))}
                       </div>
@@ -2024,8 +2060,8 @@ export default function App() {
                             )}
                           >
                              <img 
-                                src="https://images.unsplash.com/photo-1514361892635-6b07e31e75f9?auto=format&fm=webp&fit=crop&w=1200&q=80"
-                                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+                                src="https://images.pexels.com/photos/1581384/pexels-photo-1581384.jpeg?auto=compress&cs=tinysrgb&w=1200"
+                                className="w-full h-full object-cover grayscale-0 brightness-100 transition-all duration-1000"
                                 alt="Restaurant History"
                              />
                           </motion.div>
@@ -2042,8 +2078,8 @@ export default function App() {
                             )}
                           >
                              <img 
-                                src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fm=webp&fit=crop&w=1200&q=80"
-                                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+                                src="https://images.pexels.com/photos/1435735/pexels-photo-1435735.jpeg?auto=compress&cs=tinysrgb&w=1200"
+                                className="w-full h-full object-cover grayscale-0 brightness-100 transition-all duration-1000"
                                 alt="Culinary Philosophy"
                              />
                           </motion.div>
@@ -2108,8 +2144,8 @@ export default function App() {
                              )}
                           >
                              <img 
-                                src="https://images.unsplash.com/photo-1577214224026-cc9c78c5d540?auto=format&fm=webp&fit=crop&w=1200&q=80"
-                                className="w-full h-full object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-1000"
+                                src="https://images.pexels.com/photos/2102934/pexels-photo-2102934.jpeg?auto=compress&cs=tinysrgb&w=1200"
+                                className="w-full h-full object-cover grayscale-0 brightness-105 transition-all duration-1000"
                                 alt="Chef Ji-Hoon Kim"
                              />
                              <div className="absolute bottom-8 left-8">
@@ -2132,14 +2168,31 @@ export default function App() {
                   )}
 
                   {view === 'events' && (
-                    <div className="pb-40 max-w-4xl mx-auto">
-                       <p className={cn(
-                        "text-xl md:text-2xl font-light leading-relaxed mb-10 italic",
-                        theme === 'dark' ? "text-white/50" : "text-stone-500"
-                      )}>
-                        "{(TRANSLATIONS[lang] as any)[view].content}"
-                      </p>
-                      <div className="grid md:grid-cols-2 gap-8 text-left mt-20">
+                    <div className="pb-40 max-w-5xl mx-auto space-y-20">
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={cn(
+                          "w-full aspect-[21/9] rounded-2xl overflow-hidden border relative",
+                          theme === 'dark' ? "border-white/10" : "border-black/5"
+                        )}
+                      >
+                         <img 
+                           src="https://images.pexels.com/photos/2313686/pexels-photo-2313686.jpeg?auto=compress&cs=tinysrgb&w=1200" 
+                           className="w-full h-full object-cover grayscale-0 brightness-90 transition-all duration-1000"
+                           alt="Events Atmosphere"
+                         />
+                         <div className="absolute inset-0 bg-black/20" />
+                      </motion.div>
+
+                      <div className="max-w-4xl mx-auto">
+                        <p className={cn(
+                          "text-xl md:text-3xl font-light leading-relaxed mb-10 italic text-center",
+                          theme === 'dark' ? "text-white/70" : "text-stone-600"
+                        )}>
+                          "{(TRANSLATIONS[lang] as any)[view].content}"
+                        </p>
+                        <div className="grid md:grid-cols-2 gap-8 text-left mt-20">
                          <div className={cn(
                            "p-8 border space-y-4",
                            theme === 'dark' ? "border-white/10 bg-white/5" : "border-black/5 bg-black/5"
@@ -2172,7 +2225,8 @@ export default function App() {
                         theme === 'dark' ? "text-white/30 hover:text-[#f5d38a] border-white/10" : "text-black/30 hover:text-amber-700 border-black/10"
                       )}>Return to Exploration</button>
                     </div>
-                  )}
+                  </div>
+                )}
                </div>
             </motion.div>
           )}
