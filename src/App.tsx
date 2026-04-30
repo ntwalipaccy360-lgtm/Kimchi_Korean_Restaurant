@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
-import { Menu, X, LogIn, ChevronRight, Play, UtensilsCrossed, Calendar, Sparkles, User, LogOut, Search, Globe, Moon, Sun, Instagram, Twitter, MapPin, Apple, Wine } from 'lucide-react';
+import { Menu, X, LogIn, ChevronRight, Play, UtensilsCrossed, Calendar, Sparkles, User, LogOut, Search, Globe, Moon, Sun, Instagram, Twitter, MapPin, Apple, Wine, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { cn } from './lib/utils';
 import { MENU_ITEMS, MenuItem, GALLERY_IMAGES, GALLERY_CATEGORIES } from './constants';
 import { getSensoryRecommendation, generateDiscoveryImage, getMenuItemArt } from './services/geminiService';
@@ -1695,6 +1696,14 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [lang, setLang] = useState<Language>('en');
   const [galleryTab, setGalleryTab] = useState('all');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    if (viewParam && ['landing', 'menu', 'about', 'reservation', 'events', 'gallery', 'contact', 'auth'].includes(viewParam)) {
+      setView(viewParam as View);
+    }
+  }, []);
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('kimchi-theme');
@@ -1796,6 +1805,75 @@ export default function App() {
                       Discover the Full Menu
                    </button>
                  </motion.div>
+              </section>
+
+              {/* Digital Menu QR Section */}
+              <section className={cn(
+                "py-24 px-8 transition-colors duration-700",
+                theme === 'dark' ? "bg-stone-900 border-y border-white/5" : "bg-stone-100 border-y border-black/5"
+              )}>
+                <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-16">
+                  <motion.div 
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    className="flex-1 text-center md:text-left"
+                  >
+                    <div className="flex items-center gap-3 mb-6 justify-center md:justify-start">
+                      <QrCode className="text-[#f5d38a]" size={24} />
+                      <span className="text-[#f5d38a] text-xs tracking-widest uppercase font-bold">Smart Dining</span>
+                    </div>
+                    <h3 className={cn(
+                      "text-4xl md:text-5xl font-serif italic mb-6",
+                      theme === 'dark' ? "text-white" : "text-neutral-900"
+                    )}>Scan to <span className="text-[#f5d38a]">Explore</span></h3>
+                    <p className={cn(
+                      "text-lg font-light leading-relaxed mb-8",
+                      theme === 'dark' ? "text-white/40" : "text-stone-500"
+                    )}>
+                      Access our full sensory menu instantly. Scan the code to discover hidden ingredients, culinary stories, and pairing recommendations right on your device.
+                    </p>
+                    <div className="flex gap-4 justify-center md:justify-start">
+                      <div className={cn("px-4 py-2 rounded-full border text-[10px] uppercase tracking-tighter font-bold", theme === 'dark' ? "border-white/10 text-white/50" : "border-black/10 text-black/50 text-neutral-500")}>Paperless</div>
+                      <div className={cn("px-4 py-2 rounded-full border text-[10px] uppercase tracking-tighter font-bold", theme === 'dark' ? "border-white/10 text-white/50" : "border-black/10 text-black/50 text-neutral-500")}>Interactive</div>
+                      <div className={cn("px-4 py-2 rounded-full border text-[10px] uppercase tracking-tighter font-bold", theme === 'dark' ? "border-white/10 text-white/50" : "border-black/10 text-black/50 text-neutral-500")}>Real-time</div>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    className={cn(
+                      "p-10 rounded-[3rem] border relative group",
+                      theme === 'dark' ? "bg-black border-white/10" : "bg-white border-black/5 shadow-2xl"
+                    )}
+                  >
+                    <div className="absolute -inset-4 bg-gradient-to-r from-[#f5d38a]/30 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    <div className="relative bg-white p-6 rounded-3xl">
+                      <QRCodeSVG 
+                        value={`${window.location.origin}${window.location.pathname}?view=menu`}
+                        size={180}
+                        level="H"
+                        includeMargin={false}
+                        imageSettings={{
+                          src: "https://images.pexels.com/photos/1055058/pexels-photo-1055058.jpeg?auto=compress&cs=tinysrgb&w=100",
+                          x: undefined,
+                          y: undefined,
+                          height: 36,
+                          width: 36,
+                          excavate: true,
+                        }}
+                      />
+                    </div>
+                    <div className="mt-8 text-center">
+                      <p className={cn(
+                        "text-[9px] tracking-[0.4em] uppercase font-black",
+                        theme === 'dark' ? "text-[#f5d38a]/50" : "text-amber-700/50"
+                      )}>Kimchi Flame Digital</p>
+                    </div>
+                  </motion.div>
+                </div>
               </section>
             </motion.div>
           )}
